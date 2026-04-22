@@ -24,11 +24,6 @@ jobs:
       - name: Check JAR exists
         run: ls -la target/
 
-      - name: Test connectivity
-        run: |
-          nc -zv 20.250.15.103 22 || echo "Port 22 unreachable"
-          curl -s ifconfig.me
-
       - name: Copy JAR via SCP
         uses: appleboy/scp-action@v1
         with:
@@ -48,9 +43,19 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            pkill -f "github-action-0.0.1" || true
-            sleep 2
-            nohup java -jar /home/azureuser/app/github-action-0.0.1-SNAPSHOT.jar > /home/azureuser/app/app.log 2>&1 &
-            sleep 3
-            echo "App démarrée"
-            cat /home/azureuser/app/app.log
+            set -e
+            pkill -f "github-action-0.0.1" 2>/dev/null || true
+            sleep 1
+            mkdir -p /home/azureuser/app
+            nohup java -jar /home/azureuser/app/github-action-0.0.1-SNAPSHOT.jar \
+              --server.port=8080 \
+              > /home/azureuser/app/app.log 2>&1 &
+            echo $! > /home/azureuser/app/app.pid
+            sleep 5
+            if ps -p $(cat /home/azureuser/app/app.pid) > /dev/null 2>&1; then
+              echo "✅ App démarrée avec PID $(cat /home/azureuser/app/app.pid)"
+            else
+              echo "❌ App failed to start"
+              cat /home/azureuser/app/app.log
+              exit 1
+            fi
