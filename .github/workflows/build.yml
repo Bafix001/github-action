@@ -38,6 +38,7 @@ jobs:
           port: ${{ secrets.PORT }}
           source: "target/github-action-0.0.1-SNAPSHOT.jar"
           target: /home/azureuser/app
+          strip_components: 1
 
       - name: Deploy and run
         uses: appleboy/ssh-action@v1
@@ -48,5 +49,5 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             pkill -f "github-action" || true
-            nohup java -jar /home/azureuser/app/target/github-action-0.0.1-SNAPSHOT.jar > /home/azureuser/app/app.log 2>&1 &
+            nohup java -jar /home/azureuser/app/github-action-0.0.1-SNAPSHOT.jar > /home/azureuser/app/app.log 2>&1 &
             echo "App démarrée"
