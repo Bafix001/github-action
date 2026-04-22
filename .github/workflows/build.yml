@@ -48,6 +48,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            pkill -f "github-action" || true
+            pkill -f "github-action-0.0.1" || true
+            sleep 2
             nohup java -jar /home/azureuser/app/github-action-0.0.1-SNAPSHOT.jar > /home/azureuser/app/app.log 2>&1 &
+            sleep 3
             echo "App démarrée"
+            cat /home/azureuser/app/app.log
