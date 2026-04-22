@@ -4,7 +4,6 @@ on:
   push:
     branches: [ "main" ]
 
-
 jobs:
   build:
     name: Build
@@ -22,11 +21,26 @@ jobs:
       - name: Build with Maven
         run: mvn -Dmaven.test.skip=true -B package --file pom.xml
 
-      - name: Execute remote SSH commands using password
+      - name: Test connectivity
+        run: |
+          nc -zv 20.250.15.103 22 || echo "Port 22 unreachable"
+          curl -s ifconfig.me
+
+      - name: Execute remote SSH commands
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.SSH_KEY }}
+          key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
           script: whoami
+
+      - name: Copy files via SCP
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          source: "tests/a.txt,tests/b.txt"
+          target: /home/azureuser/app
